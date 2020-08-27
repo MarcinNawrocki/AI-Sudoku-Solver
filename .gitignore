@@ -1,0 +1,26 @@
+#ignore images
+*.bmp
+*.jpg
+*.png
+
+#ignre text files
+*.txt
+*.docx
+
+#ignore json
+*.json
+
+#ignore models
+*.h5
+*.hp5
+
+#python compiles
+*.pyc
+
+#folders
+
+data/
+model/
+sample_images/
+.ipynb_checkpoints/
+.vscode/
