@@ -2,10 +2,11 @@ import numpy as np
 import tensorflow as tf
 
 from tensorflow.keras.models import Sequential, Model
-from tensorflow.keras.layers import Dense, Conv2D, Flatten, Reshape, BatchNormalization, Activation, Input,Dropout
+from tensorflow.keras.layers import Dense, Conv2D, Flatten, Reshape, BatchNormalization, Activation, Input, Dropout
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.backend import set_value
+
 
 def get_model():
     """Return a neural network model created using Keras to solve a sudoku 
@@ -13,14 +14,16 @@ def get_model():
     Returns:
         [Sequential] -- compiled Keras model to solve sudoku
     """
-    input_shape = (9,9,1)
+    input_shape = (9, 9, 1)
     model = Sequential()
 
-    model.add(Conv2D(64, kernel_size=(3,3), activation='relu', padding='same', input_shape=input_shape))
+    model.add(Conv2D(64, kernel_size=(3, 3), activation='relu',
+              padding='same', input_shape=input_shape))
     model.add(BatchNormalization())
-    model.add(Conv2D(64, kernel_size=(3,3), activation='relu', padding='same'))
+    model.add(Conv2D(64, kernel_size=(3, 3), activation='relu', padding='same'))
     model.add(BatchNormalization())
-    model.add(Conv2D(128, kernel_size=(1,1), activation='relu', padding='same'))
+    model.add(Conv2D(128, kernel_size=(1, 1),
+              activation='relu', padding='same'))
 
     model.add(Flatten())
     model.add(Dense(81*9))
@@ -28,9 +31,11 @@ def get_model():
     model.add(Activation('softmax'))
 
     adam = Adam(learning_rate=0.001)
-    model.compile(loss='sparse_categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
+    model.compile(loss='sparse_categorical_crossentropy',
+                  optimizer=adam, metrics=['accuracy'])
 
     return model
+
 
 def load_model(approach):
     """Load one of the pretrained model to solve a sudoku board
@@ -49,7 +54,8 @@ def load_model(approach):
     model = tf.keras.models.load_model(filename, compile=False)
     return model
 
-def training_first_approach(model,dataset, batch_size=128):
+
+def training_first_approach(model, dataset, batch_size=128):
     """Execute training with Sudoku Boards using first approach settings
 
     Arguments:
@@ -63,9 +69,11 @@ def training_first_approach(model,dataset, batch_size=128):
         [Sequential] -- trained Keras model using the first approach
     """
     X_train, X_test, y_train, y_test = dataset
-    early_stop = EarlyStopping(monitor='val_loss',patience=2, restore_best_weights=True)
+    early_stop = EarlyStopping(
+        monitor='val_loss', patience=2, restore_best_weights=True)
     with tf.device('/GPU:0'):
-        model.fit(X_train, y_train, epochs=5, batch_size=batch_size, validation_data = [X_test, y_test], callbacks = [early_stop])
+        model.fit(X_train, y_train, epochs=5, batch_size=batch_size,
+                  validation_data=[X_test, y_test], callbacks=[early_stop])
 
     return model
 
@@ -85,18 +93,20 @@ def training_second_approach(model, dataset, epochs, digits, batch_size=32):
     Returns:
         [Sequential] -- trained Keras model using the second approach
     """
-    #sprawdzic czy te same długości
+    # sprawdzic czy te same długości
     X_train, X_test, y_train, y_test = dataset
-    early_stop = EarlyStopping(monitor='val_loss',patience=1, restore_best_weights=True)
-    i=1
+    early_stop = EarlyStopping(
+        monitor='val_loss', patience=1, restore_best_weights=True)
+    i = 1
     for _epochs, _delete in zip(epochs, digits):
         print(f'Pass stage number {i}')
         i += 1
         with tf.device('/GPU:0'):
-            model.fit(delete_digits(X_train,_delete), y_train, 
-                    validation_data=(delete_digits(X_test,_delete),y_test),
-                    epochs=_epochs, batch_size=16, callbacks=[early_stop])
+            model.fit(delete_digits(X_train, _delete), y_train,
+                      validation_data=(delete_digits(X_test, _delete), y_test),
+                      epochs=_epochs, batch_size=16, callbacks=[early_stop])
     return model
+
 
 def delete_digits(np_Y, digits_to_delete=1):
     """Function deletes a specified number of digits from each sudoku board in passed batch.
@@ -111,7 +121,7 @@ def delete_digits(np_Y, digits_to_delete=1):
     Returns:
         [NumPy array] -- a batch of sudoku boards with the deleted specified number of digits
     """
-    np_boards = np_X.copy()
+    np_boards = np_Y.copy()
     for np_board in np_boards:
-        np_board.flat[np.random.randint(0, 81, digits_to_delete)] = - 0.5  
+        np_board.flat[np.random.randint(0, 81, digits_to_delete)] = - 0.5
     return np_boards
