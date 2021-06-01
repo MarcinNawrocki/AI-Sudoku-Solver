@@ -3,16 +3,21 @@ import numpy as np
 import math
 import imutils
 
-def findBoards(image, area_length, inv = True):
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    if inv:
-        thresh = cv2.threshold(gray,100,255, cv2.THRESH_BINARY_INV)[1]
-    else:
-        thresh = cv2.threshold(gray, 100, 255, cv2.THRESH_BINARY)[1]
+def findBoards(img, area_length, inv = True):
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
+    if inv:
+        BINARY_MODE =  cv2.THRESH_BINARY_INV
+    else:
+        BINARY_MODE =  cv2.THRESH_BINARY
+
+    thresh = cv2.threshold(gray, 100, 255, BINARY_MODE)[1]
     contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    black_board = np.zeros(image.shape)
+    cv2.imshow('thhh', thresh)
+
+
+    black_board = np.zeros(img.shape)
 
     cnt_sudoku = []
     #wyodrebnij kontury > od zadanych 7e4 dla 600x600
@@ -22,6 +27,7 @@ def findBoards(image, area_length, inv = True):
 
     #draw green contours on black board
     imcnt = cv2.drawContours(black_board, cnt_sudoku, -1, (0,255,0), 1)
+    cv2.imshow('xxx', imcnt)
 
     boxes = []
     #rectangle boxes for detected shapes
@@ -29,7 +35,14 @@ def findBoards(image, area_length, inv = True):
         rect = cv2.minAreaRect(c)
         box = cv2.boxPoints(rect)
         box = np.int0(box)
+        x = box[0][0]-box[2][0]
+        y = box[0][1]-box[2][1]
+        l = math.sqrt(x**2 + y**2)
+        print(l)
+        if not inv and l > 200: #sometimes there are random shapes around the frame
+            continue
         boxes.append(box)
+
 
     if len(boxes)>1:
         #function for fixing internal boards order - some box count from different point
@@ -107,11 +120,19 @@ def cropFromCords(image, cords):
 
 
 def fixAngle(img, box):
-    #angle error
-    a = box[0][1] - box[1][1]
-    b = box[0][0] - box[1][0]
+    #rotate board a little
+
+    #find point with smallest y
+    box_sorted = sorted(box, key=lambda a: a[1])
+    a = box_sorted[1][1]-box_sorted[0][1]
+    b = box_sorted[1][0]-box_sorted[0][0]
+
     rad = math.atan2(a, b)
     deg = 180 * rad / math.pi
+
+    if b < 0:
+        deg = deg + 180
+
 
     rotated = imutils.rotate(img, deg)
 
