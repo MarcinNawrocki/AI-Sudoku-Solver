@@ -12,8 +12,7 @@ def findBoards(image, area_length, inv = True):
 
     contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    #czarna plansza
-    black_shape = np.zeros(image.shape)
+    black_board = np.zeros(image.shape)
 
     cnt_sudoku = []
     #wyodrebnij kontury > od zadanych 7e4 dla 600x600
@@ -21,19 +20,52 @@ def findBoards(image, area_length, inv = True):
         if cv2.contourArea(c) > area_length:
             cnt_sudoku.append(c)
 
-    #draw green contours on black image
-    imcnt = cv2.drawContours(black_shape, cnt_sudoku, -1, (0,255,0), 1)
+    #draw green contours on black board
+    imcnt = cv2.drawContours(black_board, cnt_sudoku, -1, (0,255,0), 1)
 
     boxes = []
-    #red rectangle box based on detected contour
+    #rectangle boxes for detected shapes
     for c in cnt_sudoku:
         rect = cv2.minAreaRect(c)
         box = cv2.boxPoints(rect)
         box = np.int0(box)
         boxes.append(box)
 
-    print(f"{box}")
-    print(box[0], box[1])
+    if len(boxes)>1:
+        #function for fixing internal boards order - some box count from different point
+
+        box_center = []
+        for b in boxes:
+            #get global center of a box
+            x = abs(b[0][0]-b[2][0])//2 + np.amin(b, axis=0)[0]
+            y = abs(b[0][1]-b[2][1])//2 + np.amin(b, axis=0)[1]
+            box_center.append([x, y])
+
+        #sort by y, then each row by x
+        sorted_y = sorted(box_center, key=lambda a: a[1])
+        row1 = sorted_y[:3]
+        row2 = sorted_y[3:6]
+        row3 = sorted_y[6:]
+
+        sorted_centers = sorted(row1, key=lambda a: a[0])
+        for s in (sorted(row2, key=lambda a: a[0])):
+            sorted_centers.append(s)
+        for s in (sorted(row3, key=lambda a: a[0])):
+            sorted_centers.append(s)
+
+        #get proper indices for internal boxes
+        indices = []
+
+        for bc in box_center:
+            index = sorted_centers.index(bc)
+            indices.append(index)
+        #sort by list of indices
+        l = sorted(zip(boxes, indices), key = lambda a: a[1])
+
+        box_buffer = []
+        for cords, index in l:
+            box_buffer.append(cords)
+        boxes = box_buffer
 
     return boxes
 
@@ -75,6 +107,7 @@ def cropFromCords(image, cords):
 
 
 def fixAngle(img, box):
+    #angle error
     a = box[0][1] - box[1][1]
     b = box[0][0] - box[1][0]
     rad = math.atan2(a, b)
@@ -82,11 +115,8 @@ def fixAngle(img, box):
 
     rotated = imutils.rotate(img, deg)
 
+    #this gets rid of remaining black frame
     h, w = rotated.shape[:2]
     crop_side = a // 2 + 3
-
     fixed = rotated[crop_side:h - crop_side, crop_side:w - crop_side]
-    if deg > 1:
-        return fixed
-    else:
-        return img
+    return fixed
