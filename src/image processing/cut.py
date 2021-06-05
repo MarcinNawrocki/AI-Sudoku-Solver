@@ -19,3 +19,19 @@ for i in range(3):
 
 cv2.imshow('1', image)
 cv2.waitKey()
+
+
+def load_shapes(self):
+    cats = list(range(1, 10))
+    for c in cats:
+        ds_dir = glob.glob(f'shapes/{c}/*')
+        images = []
+        for d in ds_dir:
+            img = cv2.imread(d)
+            img = prepare_image(img)
+            digit = self.extract_digit(img)
+            cv2.imshow(f'{c}', img)
+            print(digit)
+            cv2.waitKey()
+            images.append(img)
+        self.dataset.append(images)
