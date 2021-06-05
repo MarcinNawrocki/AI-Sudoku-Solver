@@ -1,7 +1,7 @@
 import cv2
 
 
-image = cv2.cvtColor(cv2.imread('pieces/3.png'), cv2.COLOR_BGR2RGB)
+image = cv2.cvtColor(cv2.imread('pieces/6.png'), cv2.COLOR_BGR2RGB)
 
 h, w = image.shape[:2]
 

@@ -141,3 +141,25 @@ def fixAngle(img, box):
     crop_side = a // 2 + 3
     fixed = rotated[crop_side:h - crop_side, crop_side:w - crop_side]
     return fixed
+
+def prepare_image(img):
+
+    img = cv2.resize(img, (70, 70))
+
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    thresh = cv2.threshold(gray, 100, 255, cv2.THRESH_BINARY_INV)[1]
+    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    for c in contours:
+        if cv2.contourArea(c) > 100.0:
+            rect = cv2.minAreaRect(c)
+            box = cv2.boxPoints(rect)
+            box = np.int0(box)
+
+            cv2.drawContours(img, [box], 0, (0, 0, 255), 1)
+
+            mask = np.zeros(img.shape[:2], dtype=np.uint8)
+            cv2.fillPoly(mask, pts=[box], color=(255, 255, 255))
+
+            filtered_image = cv2.bitwise_and(thresh, mask)
+            return filtered_image
