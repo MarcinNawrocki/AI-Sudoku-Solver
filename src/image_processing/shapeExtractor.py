@@ -1,4 +1,4 @@
-import cv2
+import numpy as np
 import pytesseract
 from cvFunctions import *
 
@@ -20,6 +20,7 @@ class Extractor:
         self.find_sudoku()
         self.get_sudoku_squares()
         self.get_single_digit()
+        self.custom_sort()
         return self.digits
 
     def get_sudoku_image(self, img_dir):
@@ -93,10 +94,22 @@ class Extractor:
                 digit = 0
             return digit
 
-DIR = '6.jpg' #3.jpg wszystko rozpoznal
+    def custom_sort(self):
+        """
+        Function sorting sudoku array into format acceptable by tensorflow model: rows x cols
+        Initially every row was represented by each value of single sudoku square
+        """
+        sudoku = np.asarray(self.digits)
+        temporary_list = []
 
-ex = Extractor(DIR, True)
+        for s in sudoku:
+            s = s.reshape(3, 3)
+            temporary_list.append(s)
 
-sudoku = ex.get_digits()     
+        sudoku = np.asarray(temporary_list)
+        sudoku = np.concatenate(sudoku, axis=1)
+        sudoku = sudoku.reshape(9, -1)
 
-cv2. waitKey()
+        order = [0, 3, 6, 1, 4, 7, 2, 5, 8]
+
+        self.digits = sudoku[order]
