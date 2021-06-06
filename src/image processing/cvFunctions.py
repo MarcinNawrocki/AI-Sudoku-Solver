@@ -3,6 +3,7 @@ import numpy as np
 import math
 import imutils
 
+
 def findBoards(img, area_length, inv = True):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -14,7 +15,7 @@ def findBoards(img, area_length, inv = True):
     thresh = cv2.threshold(gray, 100, 255, BINARY_MODE)[1]
     contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    cv2.imshow('thhh', thresh)
+    #cv2.imshow('thhh', thresh)
 
 
     black_board = np.zeros(img.shape)
@@ -27,7 +28,7 @@ def findBoards(img, area_length, inv = True):
 
     #draw green contours on black board
     imcnt = cv2.drawContours(black_board, cnt_sudoku, -1, (0,255,0), 1)
-    cv2.imshow('xxx', imcnt)
+    #cv2.imshow('xxx', imcnt)
 
     boxes = []
     #rectangle boxes for detected shapes
@@ -38,7 +39,6 @@ def findBoards(img, area_length, inv = True):
         x = box[0][0]-box[2][0]
         y = box[0][1]-box[2][1]
         l = math.sqrt(x**2 + y**2)
-        print(l)
         if not inv and l > 200: #sometimes there are random shapes around the frame
             continue
         boxes.append(box)
@@ -143,15 +143,15 @@ def fixAngle(img, box):
     return fixed
 
 def prepare_image(img):
-
+    isNumber = False
     img = cv2.resize(img, (70, 70))
-
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     thresh = cv2.threshold(gray, 100, 255, cv2.THRESH_BINARY_INV)[1]
     contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     for c in contours:
-        if cv2.contourArea(c) > 100.0:
+        if cv2.contourArea(c) > 100.0: #threshold for digit shape
+            isNumber = True
             rect = cv2.minAreaRect(c)
             box = cv2.boxPoints(rect)
             box = np.int0(box)
@@ -162,4 +162,12 @@ def prepare_image(img):
             cv2.fillPoly(mask, pts=[box], color=(255, 255, 255))
 
             filtered_image = cv2.bitwise_and(thresh, mask)
-            return filtered_image
+
+            img = filtered_image
+
+    img = cv2.threshold(img, 100, 255, cv2.THRESH_BINARY_INV)[1]
+
+    if isNumber:
+        return img
+    else:
+        return np.full((70, 70, 3), 255, dtype=np.uint8) #return white img when no shape

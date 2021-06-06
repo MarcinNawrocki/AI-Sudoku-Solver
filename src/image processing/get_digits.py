@@ -1,4 +1,5 @@
-from shapeExtractor import Extractor
+from shapeExtractor import *
+
 DIR = '4.jpg'
 
 ex = Extractor(DIR)
