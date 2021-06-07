@@ -1,18 +1,20 @@
-from argumentParser import parser
-from digitExtractor import *
-from cvFunctions import draw_sudoku
+import numpy as np
 
+from argumentParser import parser
+from digitExtractor import Extractor
+from cvFunctions import draw_sudoku
+from keras.models import load_model
+from src.modeling.evaluating import solve_human_approach, transform
 
 
 if __name__ == '__main__':
-    #args = parser()
-    #ex = Extractor(args.image, args.debug)
-    DIR = 'sudoku.jpg'
-    ex = Extractor(DIR)
-    sudoku = ex.get_digits()
+    args = parser()
+    ex = Extractor(args.image, args.debug)
+    unsolved = ex.get_digits()
 
-    for s in sudoku:
-        print(s)
+    model = load_model('../sudoku_models/CNN.hp5')
 
-    random = np.random.randint(5, size=(9, 9))
-    draw_sudoku(sudoku, random)
+    sudoku = transform(unsolved)
+    predict = solve_human_approach(sudoku, model).astype(np.uint8)
+
+    draw_sudoku(unsolved, predict)

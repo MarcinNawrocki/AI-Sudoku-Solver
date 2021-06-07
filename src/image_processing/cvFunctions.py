@@ -15,20 +15,15 @@ def findBoards(img, area_length, inv = True):
     thresh = cv2.threshold(gray, 100, 255, BINARY_MODE)[1]
     contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    #cv2.imshow('thhh', thresh)
-
-
     black_board = np.zeros(img.shape)
 
     cnt_sudoku = []
-    #wyodrebnij kontury > od zadanych 7e4 dla 600x600
     for c in contours:
         if cv2.contourArea(c) > area_length:
             cnt_sudoku.append(c)
 
     #draw green contours on black board
-    imcnt = cv2.drawContours(black_board, cnt_sudoku, -1, (0,255,0), 1)
-    #cv2.imshow('xxx', imcnt)
+    #imcnt = cv2.drawContours(black_board, cnt_sudoku, -1, (0,255,0), 1)
 
     boxes = []
     #rectangle boxes for detected shapes
