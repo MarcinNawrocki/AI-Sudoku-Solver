@@ -1,4 +1,3 @@
-import numpy as np
 import pytesseract
 from cvFunctions import *
 
@@ -19,7 +18,7 @@ class Extractor:
         print('[INFO] Extracting digits...')
         self.find_sudoku()
         self.get_sudoku_squares()
-        self.get_single_digit()
+        self.get_single_digits()
         self.custom_sort()
         return self.digits
 
@@ -45,8 +44,7 @@ class Extractor:
             fixed = fixAngle(cropped, c)
             self.sudoku_squares.append(fixed)
 
-    def get_single_digit(self):
-        k = 0
+    def get_single_digits(self):
         for square in self.sudoku_squares:
             h, w = square.shape[:2]
 

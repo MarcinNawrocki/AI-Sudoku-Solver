@@ -1,7 +1,6 @@
-import numpy as np
-
 from argumentParser import parser
-from shapeExtractor import *
+from digitExtractor import *
+from cvFunctions import draw_sudoku
 
 
 
@@ -12,10 +11,8 @@ if __name__ == '__main__':
     ex = Extractor(DIR)
     sudoku = ex.get_digits()
 
-    print(type(sudoku))
     for s in sudoku:
         print(s)
 
-
-
-
+    random = np.random.randint(5, size=(9, 9))
+    draw_sudoku(sudoku, random)

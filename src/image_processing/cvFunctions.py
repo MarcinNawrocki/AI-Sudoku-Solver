@@ -171,3 +171,30 @@ def prepare_image(img):
         return img
     else:
         return np.full((70, 70, 3), 255, dtype=np.uint8) #return white img when no shape
+
+def draw_sudoku(unsolved, solved):
+    size = 400
+    board = np.full((size, size, 3), 255, dtype=np.uint8)
+
+    for i in range(10):
+        if i % 3 == 0:
+            thickness = 3
+        else:
+            thickness = 1
+        cv2.line(board, (i * size // 9, 0), (i * size // 9, size), (0, 0, 0), thickness)
+        cv2.line(board, (0, i * size // 9), (size, i * size // 9), (0, 0, 0), thickness)
+
+    cv2.line(board, (size, 0), (size, size), (0, 0, 0), 3)
+    cv2.line(board, (0, size), (size, size), (0, 0, 0), 3)
+
+    for i in range(9):
+        for j in range(9):
+            if unsolved[i][j] == solved[i][j]:
+                COLOR = (0, 0, 0)
+            else:
+                COLOR = (64, 219, 17)
+
+            cv2.putText(board, str(solved[i][j]), (j * size // 9 + 13, i * size // 9 + 33), cv2.FONT_HERSHEY_SIMPLEX, 1,
+                        COLOR, 2, cv2.LINE_AA)
+    cv2.imshow('SUDOKU', board)
+    cv2.waitKey()
