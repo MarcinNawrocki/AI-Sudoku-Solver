@@ -49,7 +49,7 @@ def load_model(approach):
     if approach == 1:
         filename = "./model/CNN.hp5"
     elif approach == 2:
-        filename = "./model/CNN2.hp5"
+        filename = "./model/CNN.hp5"
 
     model = tf.keras.models.load_model(filename, compile=False)
     return model
