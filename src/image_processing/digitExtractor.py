@@ -1,5 +1,8 @@
+import cv2
+import numpy as np
 import pytesseract
-from cvFunctions import *
+
+from cvFunctions import findBoards, cropFromCords, fixAngle, prepare_image
 
 
 class Extractor:
@@ -28,7 +31,9 @@ class Extractor:
         return image
 
     def find_sudoku(self):
-        # get cords for main sudoku board
+        """
+        Finds coordinates for main board.
+        """
         mb_cords = findBoards(self.image, 7e4)
 
         for c in mb_cords:
@@ -36,7 +41,9 @@ class Extractor:
             self.main_board = fixAngle(cropped, c)
 
     def get_sudoku_squares(self):
-        # get cords for internal boards
+        """
+        Finds coordinates of internal squares.
+        """
         ib_cords = findBoards(self.main_board, 1e3, False)
 
         for c in ib_cords:
@@ -65,9 +72,13 @@ class Extractor:
             self.digits.append(digits_in_square)
 
     def extract_digit(self, img):
-        # numbers only
+        """
+        OCR function uses two configs. Both recognize digits, but config 2 can also find
+        letters. Thanks to it, ocr works more precisely.
+        Also, in many cases ocr recognizes '9' as 'Q'
+
+        """
         config_1 = '--psm 10 --oem 3 -c tessedit_char_whitelist=123456789'
-        # numbers, letters and other characters
         config_2 = '--psm 10 --oem 3 tessedit_char_whitelist=123456789'
 
         ocr = pytesseract.image_to_string(img, config=config_1)
@@ -86,7 +97,7 @@ class Extractor:
         for o in ocr:
             if o.isnumeric():
                 digit = int(o)
-            elif o == 'Q': #in many cases ocr recognizes 9 as Q
+            elif o == 'Q':
                 digit = 9
             else:
                 digit = 0
