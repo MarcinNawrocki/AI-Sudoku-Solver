@@ -1,9 +1,10 @@
 import numpy as np
 
+from keras.models import load_model
+
 from argumentParser import parser
 from digitExtractor import Extractor
 from cvFunctions import draw_sudoku
-from keras.models import load_model
 from src.modeling.evaluating import solve_human_approach, transform
 
 
